@@ -5,6 +5,7 @@ import com.github.tractionprojects.wgs.data.entity.Game;
 import com.github.tractionprojects.wgs.data.entity.ScheduledGame;
 import com.github.tractionprojects.wgs.data.service.GameService;
 import com.github.tractionprojects.wgs.data.service.ScheduledGameService;
+import com.github.tractionprojects.wgs.discord.GameEmbed;
 import com.github.tractionprojects.wgs.security.UserTools;
 import com.github.tractionprojects.wgs.views.MenuLayout;
 import com.vaadin.flow.component.Component;
@@ -57,7 +58,7 @@ public class PostGameView extends Div
     private final GameService games;
     private final UserTools userTools;
 
-    public PostGameView(ScheduledGameService scheduledGameService, GameService games, UserTools userTools)
+    public PostGameView(ScheduledGameService scheduledGameService, GameService games, UserTools userTools, GameEmbed gameEmbed)
     {
         this.games = games;
         this.userTools = userTools;
@@ -82,6 +83,8 @@ public class PostGameView extends Div
                     game.addPlayer(userTools.getCurrentMember());
                 scheduledGameService.update(game);
                 Notification.show(game.getClass().getSimpleName() + " details stored.");
+                if(game.getPlayers().size() < game.getNoPlayers())
+                    gameEmbed.sendMessage(game);
                 clearForm();
             }
         });
