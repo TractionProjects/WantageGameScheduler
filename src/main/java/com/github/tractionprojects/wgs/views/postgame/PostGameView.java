@@ -2,8 +2,10 @@ package com.github.tractionprojects.wgs.views.postgame;
 
 import com.github.tractionprojects.wgs.Form;
 import com.github.tractionprojects.wgs.data.entity.Game;
+import com.github.tractionprojects.wgs.data.entity.Member;
 import com.github.tractionprojects.wgs.data.entity.ScheduledGame;
 import com.github.tractionprojects.wgs.data.service.GameService;
+import com.github.tractionprojects.wgs.data.service.MemberService;
 import com.github.tractionprojects.wgs.data.service.ScheduledGameService;
 import com.github.tractionprojects.wgs.discord.GameEmbed;
 import com.github.tractionprojects.wgs.security.UserTools;
@@ -11,7 +13,6 @@ import com.github.tractionprojects.wgs.views.MenuLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.Uses;
@@ -19,6 +20,7 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.listbox.MultiSelectListBox;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
@@ -27,6 +29,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.data.provider.QuerySortOrder;
+import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.data.validator.IntegerRangeValidator;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -47,7 +50,7 @@ public class PostGameView extends Div
     private final IntegerField noPlayers = new IntegerField("Number of Players");
     private final IntegerField pointsLimit = new IntegerField("Points Limit");
     private final TextArea details = new TextArea("Details");
-    private final Checkbox playing = new Checkbox("Add self as Player");
+    private final MultiSelectListBox<Member> players = new MultiSelectListBox<>();
 
     private final Button cancel = new Button("Cancel");
     private final Button save = new Button("Post");
@@ -56,12 +59,14 @@ public class PostGameView extends Div
     private final Binder<ScheduledGame> binder = new Binder<>(ScheduledGame.class);
 
     private final GameService games;
+    private final MemberService members;
     private final UserTools userTools;
 
-    public PostGameView(ScheduledGameService scheduledGameService, GameService games, UserTools userTools, GameEmbed gameEmbed)
+    public PostGameView(ScheduledGameService scheduledGameService, GameService games, UserTools userTools, GameEmbed gameEmbed, MemberService members)
     {
         this.games = games;
         this.userTools = userTools;
+        this.members = members;
         addClassName("post-game-view");
 
         add(createTitle());
@@ -78,12 +83,9 @@ public class PostGameView extends Div
             if (binder.validate().isOk())
             {
                 ScheduledGame game = binder.getBean();
-                game.setOrganiser(userTools.getCurrentMember());
-                if (playing.getValue())
-                    game.addPlayer(userTools.getCurrentMember());
                 scheduledGameService.update(game);
                 Notification.show(game.getClass().getSimpleName() + " details stored.");
-                if(game.getPlayers().size() < game.getNoPlayers())
+                if (game.getPlayers().size() < game.getNoPlayers())
                     gameEmbed.sendMessage(game);
                 clearForm();
             }
@@ -102,11 +104,16 @@ public class PostGameView extends Div
                 .bind("noPlayers");
         binder.bind(pointsLimit, "pointsLimit");
         binder.bind(details, "details");
+        binder.bind(players, "players");
     }
 
     private void clearForm()
     {
-        binder.setBean(new ScheduledGame());
+        ScheduledGame game = new ScheduledGame();
+        Member user = userTools.getCurrentMember();
+        game.setOrganiser(user);
+        game.addPlayer(user);
+        binder.setBean(game);
     }
 
     private Component createTitle()
@@ -138,8 +145,31 @@ public class PostGameView extends Div
             }
         });
         game.setItemLabelGenerator(Game::getName);
-        playing.setValue(true);
-        formLayout.add(date, game, noPlayers, pointsLimit, details, playing);
+
+        players.setDataProvider(new PageableDataProvider<Member, String>()
+        {
+            @Override
+            protected Page<Member> fetchFromBackEnd(Query<Member, String> query, Pageable pageable)
+            {
+                return members.list(pageable);
+            }
+
+            @Override
+            protected List<QuerySortOrder> getDefaultSortOrders()
+            {
+                return QuerySortOrder.asc("id").build();
+            }
+
+            @Override
+            protected int sizeInBackEnd(Query<Member, String> query)
+            {
+                return members.count();
+            }
+        });
+        players.setRenderer(new TextRenderer<>(Member::getFullName));
+
+        formLayout.add(date, game, noPlayers, pointsLimit, details);
+        formLayout.addFormItem(players, "Players");
         return formLayout;
     }
 
