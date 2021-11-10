@@ -1,5 +1,6 @@
 package com.github.tractionprojects.wgs.views.schedule;
 
+import com.github.tractionprojects.wgs.Form;
 import com.github.tractionprojects.wgs.components.SetConverter;
 import com.github.tractionprojects.wgs.data.entity.Member;
 import com.github.tractionprojects.wgs.data.entity.ScheduledGame;
@@ -13,6 +14,7 @@ import com.vaadin.flow.component.grid.GridSortOrder;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.provider.SortDirection;
@@ -70,6 +72,7 @@ public class ScheduleView extends Div
 
         private Button join;
         private Button leave;
+        private Button edit;
         private Button delete;
 
         public DetailsFormLayout()
@@ -118,12 +121,17 @@ public class ScheduleView extends Div
                 grid.getDataProvider().refreshItem(binder.getBean());
                 updateButtonStates();
             });
+            edit = new Button("Edit Game", e ->
+            {
+                ScheduledGame game = binder.getBean();
+                new EditForm().open(game);
+            });
             delete = new Button("Delete Game", e ->
             {
                 scheduledGameService.deleteGame(binder.getBean());
                 grid.getDataProvider().refreshAll();
             });
-            buttons.add(join, leave, delete);
+            buttons.add(join, leave, edit, delete);
             return buttons;
         }
 
@@ -138,7 +146,42 @@ public class ScheduleView extends Div
 
             join.setEnabled(!playing && !gameFull);
             leave.setEnabled(playing);
+            edit.setEnabled(organiser || admin);
             delete.setEnabled(organiser || admin);
+        }
+    }
+
+    private class EditForm extends Form<ScheduledGame>
+    {
+
+        private final IntegerField editNoPlayers;
+
+        public EditForm()
+        {
+            super(ScheduledGame.class);
+            editNoPlayers = addField("Number Of Players", new IntegerField(), "noPlayers", true);
+            addField("Points Limit", new IntegerField(), "pointsLimit");
+            addField("Details", new TextArea(), "details").setWidthFull();
+        }
+
+        @Override
+        protected boolean saveData(ScheduledGame data)
+        {
+            if (editNoPlayers.getValue() < 2)
+            {
+                editNoPlayers.setErrorMessage("Games must have at lest 2 players");
+                editNoPlayers.setInvalid(true);
+                return false;
+            }
+            if(editNoPlayers.getValue() < data.getPlayers().size())
+            {
+                editNoPlayers.setErrorMessage("You can not set the player limit lower than the current number of players");
+                editNoPlayers.setInvalid(true);
+                return false;
+            }
+            scheduledGameService.save(data);
+            grid.getDataProvider().refreshItem(data);
+            return true;
         }
     }
 }
