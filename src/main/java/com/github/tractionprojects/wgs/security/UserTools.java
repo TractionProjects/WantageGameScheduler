@@ -77,6 +77,11 @@ public class UserTools
         return false;
     }
 
+    public String getEmailFromDiscord()
+    {
+        return getPrincipalAttribute("email");
+    }
+
     public OAuth2AuthenticationToken getAuthentication()
     {
         return (OAuth2AuthenticationToken) SecurityContextHolder.getContext().getAuthentication();

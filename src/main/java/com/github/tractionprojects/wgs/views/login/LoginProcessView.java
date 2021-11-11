@@ -59,6 +59,7 @@ public class LoginProcessView extends Div implements BeforeEnterObserver
                 newMember.setDiscordId(discordID);
                 if (Developers.isDev(discordID))
                     newMember.setIsAdmin(true);
+                newMember.setEmail(userTools.getEmailFromDiscord());
                 members.update(newMember);
                 getUI().ifPresent(ui -> ui.navigate(ScheduleView.class));
             } catch (ValidationException ignore)
@@ -116,9 +117,15 @@ public class LoginProcessView extends Div implements BeforeEnterObserver
             dialog.open();
             return;
         }
-        long ourId = userTools.getCurrentUsersID();
-        Member foundMember = members.getByDiscordID(ourId);
+        Member foundMember = userTools.getCurrentMember();
         if (foundMember != null)
+        {
+            if(foundMember.getEmail() == null || foundMember.getEmail().isEmpty())
+            {
+                foundMember.setEmail(userTools.getEmailFromDiscord());
+                members.save(foundMember);
+            }
             beforeEnterEvent.forwardTo(ScheduleView.class);
+        }
     }
 }
