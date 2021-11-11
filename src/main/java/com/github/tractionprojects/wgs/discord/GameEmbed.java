@@ -1,6 +1,8 @@
 package com.github.tractionprojects.wgs.discord;
 
 import com.github.tractionprojects.wgs.data.entity.ScheduledGame;
+import com.github.tractionprojects.wgs.views.schedule.ScheduleView;
+import com.vaadin.flow.router.RouteConfiguration;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.channel.GuildMessageChannel;
 import discord4j.core.spec.EmbedCreateSpec;
@@ -27,7 +29,7 @@ public class GameEmbed
         EmbedCreateSpec embed = EmbedCreateSpec.builder()
                 .color(Color.BLUE)
                 .title(String.format("A new %s game has been posted", game.getGame().getName()))
-                //.url("https://discord4j.com")
+                .url(System.getenv("WGS_URL"))
                 .author(game.getOrganiser().getFullName(), null, null)
                 .description(game.getDetails())
                 .addField("Number of Players", String.valueOf(game.getNoPlayers()), true)
