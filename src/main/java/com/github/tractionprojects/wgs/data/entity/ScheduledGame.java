@@ -1,6 +1,7 @@
 package com.github.tractionprojects.wgs.data.entity;
 
 import com.github.tractionprojects.wgs.data.AbstractEntity;
+import org.hibernate.annotations.ColumnDefault;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -19,6 +20,8 @@ public class ScheduledGame extends AbstractEntity
     @JoinColumn(referencedColumnName = "id")
     private Game game;
     private int noPlayers = 2;
+    @ColumnDefault("0")
+    private int otherPlayers = 0;
     private int pointsLimit;
     private String details;
     @ManyToMany(fetch = FetchType.EAGER)
@@ -66,6 +69,16 @@ public class ScheduledGame extends AbstractEntity
     public void setNoPlayers(int noPlayers)
     {
         this.noPlayers = noPlayers;
+    }
+
+    public int getOtherPlayers()
+    {
+        return otherPlayers;
+    }
+
+    public void setOtherPlayers(int otherPlayers)
+    {
+        this.otherPlayers = otherPlayers;
     }
 
     public int getPointsLimit()

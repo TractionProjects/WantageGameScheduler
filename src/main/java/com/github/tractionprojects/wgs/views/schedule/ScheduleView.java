@@ -46,7 +46,7 @@ public class ScheduleView extends Div
         grid.addColumn("date").setAutoWidth(true);
         grid.addColumn("organiser.fullName").setHeader("Organiser").setAutoWidth(true);
         grid.addColumn("game.name").setHeader("Game").setAutoWidth(true);
-        grid.addColumn(g -> String.format("%d/%d", g.getPlayers().size(), g.getNoPlayers()))
+        grid.addColumn(g -> String.format("%d/%d", g.getPlayers().size() + g.getOtherPlayers(), g.getNoPlayers()))
                 .setHeader("Number of Players").setAutoWidth(true);
         grid.addColumn("pointsLimit").setAutoWidth(true);
         grid.setDataProvider(new CrudServiceDataProvider<>(scheduledGameService));
@@ -139,7 +139,7 @@ public class ScheduleView extends Div
         {
             ScheduledGame game = binder.getBean();
 
-            boolean gameFull = game.getPlayers().size() >= game.getNoPlayers();
+            boolean gameFull = game.getPlayers().size() + game.getOtherPlayers() >= game.getNoPlayers();
             boolean playing = game.getPlayers().contains(userTools.getCurrentMember());
             boolean organiser = game.getOrganiser().equals(userTools.getCurrentMember());
             boolean admin = userTools.isAdmin();
@@ -160,6 +160,7 @@ public class ScheduleView extends Div
         {
             super(ScheduledGame.class);
             editNoPlayers = addField("Number Of Players", new IntegerField(), "noPlayers", true);
+            addField("Number of Non Member Players", new IntegerField(), "otherPlayers");
             addField("Points Limit", new IntegerField(), "pointsLimit");
             addField("Details", new TextArea(), "details").setWidthFull();
         }
@@ -173,7 +174,7 @@ public class ScheduleView extends Div
                 editNoPlayers.setInvalid(true);
                 return false;
             }
-            if(editNoPlayers.getValue() < data.getPlayers().size())
+            if (editNoPlayers.getValue() < data.getPlayers().size() + data.getOtherPlayers())
             {
                 editNoPlayers.setErrorMessage("You can not set the player limit lower than the current number of players");
                 editNoPlayers.setInvalid(true);
