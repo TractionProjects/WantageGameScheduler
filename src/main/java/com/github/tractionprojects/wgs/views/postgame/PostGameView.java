@@ -51,6 +51,7 @@ public class PostGameView extends Div
     private final IntegerField pointsLimit = new IntegerField("Points Limit");
     private final TextArea details = new TextArea("Details");
     private final MultiSelectListBox<Member> players = new MultiSelectListBox<>();
+    private final IntegerField nonMemberPlayers = new IntegerField("Number of Non Member Players");
 
     private final Button cancel = new Button("Cancel");
     private final Button save = new Button("Post");
@@ -83,9 +84,15 @@ public class PostGameView extends Div
             if (binder.validate().isOk())
             {
                 ScheduledGame game = binder.getBean();
+                if(game.getPlayers().size() + game.getOtherPlayers() > game.getNoPlayers())
+                {
+                    noPlayers.setErrorMessage("The player limit must be at least the number of players playing");
+                    noPlayers.setInvalid(true);
+                    return;
+                }
                 scheduledGameService.update(game);
                 Notification.show(game.getClass().getSimpleName() + " details stored.");
-                if (game.getPlayers().size() < game.getNoPlayers())
+                if (game.getPlayers().size() + game.getOtherPlayers() < game.getNoPlayers())
                     gameEmbed.sendMessage(game);
                 clearForm();
             }
@@ -105,6 +112,7 @@ public class PostGameView extends Div
         binder.bind(pointsLimit, "pointsLimit");
         binder.bind(details, "details");
         binder.bind(players, "players");
+        binder.bind(nonMemberPlayers, "otherPlayers");
     }
 
     private void clearForm()
@@ -168,7 +176,7 @@ public class PostGameView extends Div
         });
         players.setRenderer(new TextRenderer<>(Member::getFullName));
 
-        formLayout.add(date, game, noPlayers, pointsLimit, details);
+        formLayout.add(date, game, noPlayers, pointsLimit, details, nonMemberPlayers);
         formLayout.addFormItem(players, "Players");
         return formLayout;
     }
