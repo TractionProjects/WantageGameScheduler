@@ -14,6 +14,7 @@ public class LoginView extends VerticalLayout
         setSizeFull();
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.CENTER);
-        add(new Button("Login", e -> getUI().ifPresent(ui -> ui.getPage().setLocation("/oauth2/authorization/discord"))));
+        add(new Button("Login Discord", e -> getUI().ifPresent(ui -> ui.getPage().setLocation("/oauth2/authorization/discord"))));
+        add(new Button("Login Google", e -> getUI().ifPresent(ui -> ui.getPage().setLocation("/oauth2/authorization/google"))));
     }
 }

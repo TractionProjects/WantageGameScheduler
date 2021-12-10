@@ -23,6 +23,11 @@ public class MemberService extends CrudService<Member, Integer>
         return repository.findByDiscordId(discordId);
     }
 
+    public Member getByEmail(String email)
+    {
+        return repository.findByEmail(email);
+    }
+
 
     public void delete(Member member)
     {

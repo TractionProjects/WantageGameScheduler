@@ -1,8 +1,6 @@
 package com.github.tractionprojects.wgs.discord;
 
 import com.github.tractionprojects.wgs.data.entity.ScheduledGame;
-import com.github.tractionprojects.wgs.views.schedule.ScheduleView;
-import com.vaadin.flow.router.RouteConfiguration;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.channel.GuildMessageChannel;
 import discord4j.core.spec.EmbedCreateSpec;
@@ -16,8 +14,8 @@ import java.time.format.DateTimeFormatter;
 public class GameEmbed
 {
 
-    private final DiscordBot bot;
     private final static long CHANNEL_ID = Long.parseLong(System.getenv("DISCORD_CHANNEL_ID"));
+    private final DiscordBot bot;
 
     public GameEmbed(@Autowired DiscordBot bot)
     {

@@ -1,7 +1,6 @@
 package com.github.tractionprojects.wgs.security;
 
 import com.github.tractionprojects.wgs.Developers;
-import com.github.tractionprojects.wgs.HttpHandler;
 import com.github.tractionprojects.wgs.data.entity.Member;
 import com.github.tractionprojects.wgs.data.service.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,9 +11,6 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.stereotype.Service;
-
-import java.io.BufferedReader;
-import java.net.URL;
 
 @Service
 public class UserTools
@@ -35,12 +31,17 @@ public class UserTools
 
     public long getCurrentUsersID()
     {
+        String id = getPrincipalAttribute("id");
+        if (id == null)
+            return -1;
         return Long.parseLong(getPrincipalAttribute("id"));
     }
 
     public Member getCurrentMember()
     {
-        return memberService.getByDiscordID(getCurrentUsersID());
+        if (getCurrentUsersID() != -1)
+            return memberService.getByDiscordID(getCurrentUsersID());
+        return memberService.getByEmail(getEmail());
     }
 
     public boolean isAdmin()
@@ -55,29 +56,7 @@ public class UserTools
         return client.getAccessToken();
     }
 
-    public boolean getPartOfGuild()
-    {
-        if (Developers.isDev(getCurrentUsersID()))
-            return true;
-        try
-        {
-            BufferedReader guilds = HttpHandler.getRequest(new URL("https://discordapp.com/api/users/@me/guilds"), getCurrentUsersToken());
-            String s;
-            if ((s = guilds.readLine()) != null)
-            {
-                if (s.contains("\"id\": \"655855933225828382\""))
-                {
-                    return true;
-                }
-            }
-        } catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public String getEmailFromDiscord()
+    public String getEmail()
     {
         return getPrincipalAttribute("email");
     }

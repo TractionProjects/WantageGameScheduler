@@ -5,10 +5,9 @@ import com.github.tractionprojects.wgs.data.entity.Member;
 import com.github.tractionprojects.wgs.data.service.MemberService;
 import com.github.tractionprojects.wgs.security.UserTools;
 import com.github.tractionprojects.wgs.views.schedule.ScheduleView;
-import com.vaadin.flow.component.*;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
@@ -59,7 +58,7 @@ public class LoginProcessView extends Div implements BeforeEnterObserver
                 newMember.setDiscordId(discordID);
                 if (Developers.isDev(discordID))
                     newMember.setIsAdmin(true);
-                newMember.setEmail(userTools.getEmailFromDiscord());
+                newMember.setEmail(userTools.getEmail());
                 members.update(newMember);
                 getUI().ifPresent(ui -> ui.navigate(ScheduleView.class));
             } catch (ValidationException ignore)
@@ -93,36 +92,12 @@ public class LoginProcessView extends Div implements BeforeEnterObserver
     @Override
     public void beforeEnter(BeforeEnterEvent beforeEnterEvent)
     {
-        boolean isMemberOfClub = userTools.getPartOfGuild();
-        if (!isMemberOfClub)
-        {
-            this.setVisible(false);
-            Dialog dialog = new Dialog();
-            dialog.add(new Text(userTools.getCurrentUsersName() + " is not part of the discord server."));
-            dialog.setCloseOnEsc(false);
-            dialog.setCloseOnOutsideClick(false);
-
-            Button confirmButton = new Button("Ok", event ->
-            {
-                dialog.close();
-                UI.getCurrent().navigate(LogoutProcessView.class);
-            });
-            Shortcuts.addShortcutListener(dialog, () ->
-            {
-                dialog.close();
-                UI.getCurrent().navigate(LogoutProcessView.class);
-            }, Key.ESCAPE);
-
-            dialog.add(new Div(confirmButton));
-            dialog.open();
-            return;
-        }
         Member foundMember = userTools.getCurrentMember();
         if (foundMember != null)
         {
-            if(foundMember.getEmail() == null || foundMember.getEmail().isEmpty())
+            if (foundMember.getEmail() == null || foundMember.getEmail().isEmpty())
             {
-                foundMember.setEmail(userTools.getEmailFromDiscord());
+                foundMember.setEmail(userTools.getEmail());
                 members.save(foundMember);
             }
             beforeEnterEvent.forwardTo(ScheduleView.class);

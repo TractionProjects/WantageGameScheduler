@@ -7,4 +7,6 @@ public interface MemberRepository extends JpaRepository<Member, Integer>
 {
 
     Member findByDiscordId(long discordId);
+
+    Member findByEmail(String email);
 }

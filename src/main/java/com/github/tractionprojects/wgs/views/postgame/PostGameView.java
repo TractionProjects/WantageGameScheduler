@@ -84,7 +84,7 @@ public class PostGameView extends Div
             if (binder.validate().isOk())
             {
                 ScheduledGame game = binder.getBean();
-                if(game.getPlayers().size() + game.getOtherPlayers() > game.getNoPlayers())
+                if (game.getPlayers().size() + game.getOtherPlayers() > game.getNoPlayers())
                 {
                     noPlayers.setErrorMessage("The player limit must be at least the number of players playing");
                     noPlayers.setInvalid(true);

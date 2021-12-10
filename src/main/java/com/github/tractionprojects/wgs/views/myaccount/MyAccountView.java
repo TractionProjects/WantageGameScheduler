@@ -32,7 +32,6 @@ import java.util.List;
 public class MyAccountView extends Div
 {
 
-    private final MemberService memberService;
     private final UserTools userTools;
     private final TextField firstName = new TextField("First Name");
     private final TextField lastName = new TextField("Last Name");
@@ -43,7 +42,6 @@ public class MyAccountView extends Div
 
     public MyAccountView(MemberService memberService, UserTools userTools, GameService gameService)
     {
-        this.memberService = memberService;
         this.userTools = userTools;
 
         addClassName("my-account-view");
@@ -117,7 +115,7 @@ public class MyAccountView extends Div
 
     private void LoadUserData()
     {
-        this.binder.setBean(memberService.getByDiscordID(userTools.getCurrentUsersID()));
+        this.binder.setBean(userTools.getCurrentMember());
     }
 
 }
